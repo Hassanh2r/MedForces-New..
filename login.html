@@ -47,9 +47,48 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+    <!-- Firebase SDK (Modular Syntax) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+
+        // Replace with your Firebase project config
+       const firebaseConfig = {
+  apiKey: "AIzaSyBiUeEHVDQJK1Z4QFpDuF7bRgj0VNNWIdU",
+  authDomain: "medforces-new.firebaseapp.com",
+  databaseURL: "https://medforces-new-default-rtdb.firebaseio.com",
+  projectId: "medforces-new",
+  storageBucket: "medforces-new.firebasestorage.app",
+  messagingSenderId: "846579530542",
+  appId: "1:846579530542:web:e18b6e1fecd4ce7e7958bf",
+  measurementId: "G-WH9BCQ0W2Q"
+};
+
+        // Initialize Firebase
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+
+            // Login Form Submission
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    alert('Logged in successfully!');
+                    window.location.href = 'profile.html';
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('Error logging in: ' + error.message);
+                }
+            });
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            alert('Failed to initialize Firebase. Please check your configuration.');
+        }
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -72,40 +111,5 @@
         </form>
         <p class="text-center text-gray-600 mt-4">Don't have an account? <a href="signup.html" class="text-blue-600 hover:underline">Sign up</a></p>
     </div>
-
-    <!-- Firebase Initialization and Login Logic -->
-    <script>
-        // Initialize Firebase
-        const firebaseConfig = {
-  apiKey: "AIzaSyBiUeEHVDQJK1Z4QFpDuF7bRgj0VNNWIdU",
-  authDomain: "medforces-new.firebaseapp.com",
-  databaseURL: "https://medforces-new-default-rtdb.firebaseio.com",
-  projectId: "medforces-new",
-  storageBucket: "medforces-new.firebasestorage.app",
-  messagingSenderId: "846579530542",
-  appId: "1:846579530542:web:e18b6e1fecd4ce7e7958bf",
-  measurementId: "G-WH9BCQ0W2Q"
-};
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-
-        // Login Form Submission
-        document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            // Sign in with email and password
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    alert('Logged in successfully!');
-                    window.location.href = 'profile.html';
-                })
-                .catch((error) => {
-                    alert('Error logging in: ' + error.message);
-                });
-        });
-    </script>
 </body>
 </html>

@@ -49,10 +49,57 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Heroicons CDN for icons -->
     <script src="https://unpkg.com/heroicons@2.0.18/dist/heroicons.min.js"></script>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+    <!-- Firebase SDK (Modular Syntax) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+
+        // Replace with your Firebase project config
+        const firebaseConfig = {
+  apiKey: "AIzaSyBiUeEHVDQJK1Z4QFpDuF7bRgj0VNNWIdU",
+  authDomain: "medforces-new.firebaseapp.com",
+  databaseURL: "https://medforces-new-default-rtdb.firebaseio.com",
+  projectId: "medforces-new",
+  storageBucket: "medforces-new.firebasestorage.app",
+  messagingSenderId: "846579530542",
+  appId: "1:846579530542:web:e18b6e1fecd4ce7e7958bf",
+  measurementId: "G-WH9BCQ0W2Q"
+};
+
+        // Initialize Firebase
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getDatabase(app);
+
+            // Sign-Up Form Submission
+            document.getElementById('signup-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    await set(ref(db, 'users/' + user.uid), {
+                        username: username,
+                        email: email,
+                        rating: 1500 // Default rating
+                    });
+                    alert('User signed up successfully!');
+                    window.location.href = 'profile.html';
+                } catch (error) {
+                    console.error('Sign-up error:', error);
+                    alert('Error signing up: ' + error.message);
+                }
+            });
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            alert('Failed to initialize Firebase. Please check your configuration.');
+        }
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -146,53 +193,8 @@
         <p>&copy; 2025 MedForces. Created by Hassan Hassani. All rights reserved.</p>
     </footer>
 
-    <!-- Firebase Initialization and Sign-Up Logic -->
+    <!-- Sidebar JavaScript -->
     <script>
-        // Initialize Firebase
-       const firebaseConfig = {
-  apiKey: "AIzaSyBiUeEHVDQJK1Z4QFpDuF7bRgj0VNNWIdU",
-  authDomain: "medforces-new.firebaseapp.com",
-  databaseURL: "https://medforces-new-default-rtdb.firebaseio.com",
-  projectId: "medforces-new",
-  storageBucket: "medforces-new.firebasestorage.app",
-  messagingSenderId: "846579530542",
-  appId: "1:846579530542:web:e18b6e1fecd4ce7e7958bf",
-  measurementId: "G-WH9BCQ0W2Q"
-};
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
-
-        // Sign-Up Form Submission
-        document.getElementById('signup-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            // Create user with email and password
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Save username to Realtime Database
-                    const user = userCredential.user;
-                    db.ref('users/' + user.uid).set({
-                        username: username,
-                        email: email,
-                        rating: 1500 // Default rating
-                    }).then(() => {
-                        alert('User signed up successfully!');
-                        window.location.href = 'profile.html';
-                    }).catch((error) => {
-                        alert('Error saving username: ' + error.message);
-                    });
-                })
-                .catch((error) => {
-                    alert('Error signing up: ' + error.message);
-                });
-        });
-
-        // Sidebar JavaScript
         const menuBtn = document.getElementById('menu-btn');
         const closeBtn = document.getElementById('close-btn');
         const sidebar = document.getElementById('sidebar');
