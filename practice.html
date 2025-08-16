@@ -1,0 +1,173 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedForces - Practice</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Heroicons CDN for icons -->
+    <script src="https://unpkg.com/heroicons@2.0.18/dist/heroicons.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Sidebar styles */
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <h1 class="text-2xl font-bold text-blue-800">MedForces</h1>
+            </div>
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-blue-600">Home</a>
+                <a href="challenges.html" class="text-gray-600 hover:text-blue-600">Challenges</a>
+                <a href="practice.html" class="text-gray-600 hover:text-blue-600">Questions</a>
+                <a href="leaderboard.html" class="text-gray-600 hover:text-blue-600">Leaderboard</a>
+                <a href="profile.html" class="text-gray-600 hover:text-blue-600">Profile</a>
+            </nav>
+            <!-- Login/Logout -->
+            <div class="hidden md:flex space-x-4">
+                <a href="login.html" class="text-blue-600 hover:underline">Login</a>
+                <a href="logout.html" class="text-blue-600 hover:underline">Logout</a>
+            </div>
+            <!-- Hamburger Menu (Mobile) -->
+            <div class="md:hidden">
+                <button id="menu-btn" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar (Mobile Menu) -->
+    <div id="sidebar" class="sidebar fixed top-0 left-0 h-full w-3/4 bg-white shadow-lg z-50 md:hidden">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h2 class="text-xl font-semibold text-blue-800">MedForces</h2>
+            <button id="close-btn" class="text-gray-600 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <nav class="flex flex-col p-4 space-y-4">
+            <a href="index.html" class="text-gray-600 hover:text-blue-600">Home</a>
+            <a href="challenges.html" class="text-gray-600 hover:text-blue-600">Challenges</a>
+            <a href="practice.html" class="text-gray-600 hover:text-blue-600">Questions</a>
+            <a href="leaderboard.html" class="text-gray-600 hover:text-blue-600">Leaderboard</a>
+            <a href="profile.html" class="text-gray-600 hover:text-blue-600">Profile</a>
+            <a href="login.html" class="text-blue-600 hover:underline">Login</a>
+            <a href="logout.html" class="text-blue-600 hover:underline">Logout</a>
+        </nav>
+    </div>
+
+    <!-- Main Content: Practice Subjects -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center text-blue-800 mb-12">Choose a Subject to Practice</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Subject Card 1: Anatomy -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md text-center">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Anatomy</h3>
+                    <p class="text-gray-600 mb-4">Practice MCQs and cases on human anatomy.</p>
+                    <a href="questions.html?subject=anatomy" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 block">Start Solving</a>
+                </div>
+                <!-- Subject Card 2: Physiology -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md text-center">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Physiology</h3>
+                    <p class="text-gray-600 mb-4">Practice MCQs and cases on body functions.</p>
+                    <a href="questions.html?subject=physiology" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 block">Start Solving</a>
+                </div>
+                <!-- Subject Card 3: Clinical Cases -->
+                <div class="bg-gray-50 p-6 rounded-lg shadow-md text-center">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Clinical Cases</h3>
+                    <p class="text-gray-600 mb-4">Practice real-world clinical scenarios.</p>
+                    <a href="questions.html?subject=clinical" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 block">Start Solving</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 py-6 text-center text-gray-600">
+        <p>&copy; 2025 MedForces. Created by Hassan Hassani. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript for Sidebar -->
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const closeBtn = document.getElementById('close-btn');
+        const sidebar = document.getElementById('sidebar');
+
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+        });
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html>
